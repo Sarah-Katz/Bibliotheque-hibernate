@@ -1,13 +1,15 @@
 package LibraryApp;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
-
-import net.bytebuddy.build.ToStringPlugin.Exclude;
 
 /**
  * @author Sarah Katz
@@ -33,22 +35,23 @@ public class Livre {
 	@Column(name = "ref")
 	private String ref;
 	
+	public Livre() {
+	}
+
 	/**
 	 * @param titre
 	 * @param auteur
 	 * @param genre
 	 * @param pages
-	 * @param idlivre
 	 * @param disponible
 	 * @param ref
 	 */
-	public Livre(String titre, String auteur, String genre, int pages, int idlivre, boolean disponible, String ref) {
+	public Livre(String titre, String auteur, String genre, int pages, String ref) {
 		this.titre = titre;
 		this.auteur = auteur;
 		this.genre = genre;
 		this.pages = pages;
-		this.idlivre = idlivre;
-		this.disponible = disponible;
+		this.disponible = true;
 		this.ref = ref;
 	}
 
@@ -149,6 +152,5 @@ public class Livre {
 	public void setRef(String ref) {
 		this.ref = ref;
 	}
-	
-	
+
 }
