@@ -1,14 +1,11 @@
 package LibraryApp;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.OneToOne;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 /**
@@ -16,6 +13,8 @@ import javax.persistence.Table;
  *
  */
 @Entity
+@NamedQuery(name="Livre.showAll", query="SELECT l FROM Livre l")
+@NamedQuery(name="Livre.searchAuthor", query="SELECT l FROM Livre l WHERE l.auteur LIKE :inputTitle")
 @Table(name = "livre")
 public class Livre {
 	@Column(name = "titre")
@@ -34,7 +33,7 @@ public class Livre {
 	private boolean disponible;
 	@Column(name = "ref")
 	private String ref;
-	
+
 	public Livre() {
 	}
 
