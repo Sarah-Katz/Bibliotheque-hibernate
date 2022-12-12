@@ -38,10 +38,12 @@ public class Reserv {
 	/**
 	 * @param debut
 	 * @param fin
+	 * @param livre
 	 */
-	public Reserv(Date debut, Date fin) {
+	public Reserv(final Date debut, final Date fin, final Livre livre) {
 		this.debut = debut;
 		this.fin = fin;
+		this.livre = livre;
 	}
 
 	/**
