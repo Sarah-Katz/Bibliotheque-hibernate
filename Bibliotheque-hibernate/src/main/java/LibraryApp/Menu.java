@@ -59,6 +59,7 @@ public class Menu {
 				
 				break;
 			case 6:
+				JPAUtil.shutdown();
 				System.exit(0);
 				break;
 			default:

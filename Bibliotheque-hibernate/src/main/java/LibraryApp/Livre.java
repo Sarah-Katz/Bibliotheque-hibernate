@@ -15,6 +15,7 @@ import javax.persistence.Table;
 @Entity
 @NamedQuery(name="Livre.showAll", query="SELECT l FROM Livre l")
 @NamedQuery(name="Livre.searchAuthor", query="SELECT l FROM Livre l WHERE l.auteur LIKE :inputTitle")
+@NamedQuery(name="Livre.setChanges", query="UPDATE Livre l SET titre = :titre, auteur = :auteur, genre = :genre, pages = :pages, ref = :ref WHERE titre = :oldTitle")
 @Table(name = "livre")
 public class Livre {
 	@Column(name = "titre")
@@ -54,6 +55,16 @@ public class Livre {
 		this.ref = ref;
 	}
 
+	public StringBuilder showBookInfos() {
+		StringBuilder result = new StringBuilder();
+		result.append("Titre : ").append(this.getTitre()).append("\n");
+		result.append("Auteur.ice : ").append(this.getAuteur()).append("\n");
+		result.append("Genre : ").append(this.getGenre()).append("\n");
+		result.append("Nombre de pages : ").append(this.getPages()).append("\n");
+		result.append("Référence : ").append(this.getRef()).append("\n");
+		return result;
+	}
+	
 	/**
 	 * @return the titre
 	 */

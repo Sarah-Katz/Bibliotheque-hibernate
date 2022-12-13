@@ -90,27 +90,28 @@ public class BookManager {
 			case "m":
 				Menu.mainMenu();
 			default:
-				// TODO book found with this author
 				EntityManager em = JPAUtil.getEntityManagerFactory().createEntityManager();
 				@SuppressWarnings("unchecked")
-				List<Livre> livre = (List<Livre>) em.createNamedQuery("Livre.searchAuthor").getResultList();
-				livre.setParameter("code", "%" + searchedAuthor + "%");
+				List<Livre> listeLivre = (List<Livre>) em.createNamedQuery("Livre.searchAuthor")
+						.setParameter("inputTitle", "%" + searchedAuthor + "%").getResultList();
 				StringBuilder result = new StringBuilder();
-				if (livre.size() > 0) {
-					for (Livre l : livre) {
+				if (listeLivre.size() > 0) {
+					for (Livre l : listeLivre) {
 						result.setLength(0);
 						result.append("Titre : ").append(l.getTitre()).append(", Auteur.ice : ").append(l.getAuteur())
-								.append(", Genre : ").append(l.getGenre()).append(", Nomres de pages : ").append(l.getPages())
-								.append(", Disponible : ");
+								.append(", Genre : ").append(l.getGenre()).append(", Nombre de pages : ")
+								.append(l.getPages()).append(", Disponible : ");
 						if (l.isDisponible()) {
 							result.append("oui.");
 						} else {
 							result.append("non");
 						}
 						System.out.println(result);
+						em.close();
+						confirmSearchBook(listeLivre);
 					}
 				} else {
-					//TODO : no match
+					// TODO : no match
 				}
 			}
 		} catch (InputMismatchException e) {
@@ -127,7 +128,6 @@ public class BookManager {
 	 * @param bookList List of books registered in the program
 	 */
 	protected static void showBookList() {
-
 		EntityManager em = JPAUtil.getEntityManagerFactory().createEntityManager();
 		@SuppressWarnings("unchecked")
 		List<Livre> livre = (List<Livre>) em.createNamedQuery("Livre.showAll").getResultList();
@@ -135,7 +135,7 @@ public class BookManager {
 		for (Livre l : livre) {
 			result.setLength(0);
 			result.append("Titre : ").append(l.getTitre()).append(", Auteur.ice : ").append(l.getAuteur())
-					.append(", Genre : ").append(l.getGenre()).append(", Nomres de pages : ").append(l.getPages())
+					.append(", Genre : ").append(l.getGenre()).append(", Nombre de pages : ").append(l.getPages())
 					.append(", Disponible : ");
 			if (l.isDisponible()) {
 				result.append("oui.");
@@ -145,7 +145,6 @@ public class BookManager {
 			System.out.println(result);
 		}
 		em.close();
-		JPAUtil.shutdown();
 		Menu.mainMenu();
 	}
 
@@ -161,7 +160,6 @@ public class BookManager {
 			switch (confirm) {
 			case "o":
 				Livre livre = new Livre(title, author, genre, pageNumber, ref);
-				// TODO add book to DB
 				EntityManager em = JPAUtil.getEntityManagerFactory().createEntityManager();
 				em.getTransaction().begin();
 				em.persist(livre);
@@ -187,16 +185,16 @@ public class BookManager {
 	}
 
 	// confirmation menu for searchBook()
-	private static void confirmSearchBook() {
+	private static void confirmSearchBook(final List<Livre> listeLivre) {
 		try {
 			Scanner in = new Scanner(System.in);
-			if (isFoundResult) {
+			if (listeLivre.size() > 0) {
 				System.out
 						.println("Souhaitez-vous reserver un livre ou modifier ses informations ? (Oui : o / Non : n)");
 				String userSearchChoice = in.next();
 				switch (userSearchChoice) {
 				case "o":
-					searchBookByTitle();
+					searchBookByTitle(listeLivre);
 					break;
 				case "n":
 					System.out.println("Souhaitez-vous effectuer une nouvelle recherche ? (Oui : o / Non : n)");
@@ -209,12 +207,12 @@ public class BookManager {
 						Menu.mainMenu();
 						break;
 					default:
-						confirmSearchBook();
+						confirmSearchBook(listeLivre);
 					}
 					break;
 				default:
 					System.out.println("entrée invalide");
-					confirmSearchBook();
+					confirmSearchBook(listeLivre);
 				}
 
 			} else {
@@ -231,18 +229,18 @@ public class BookManager {
 				break;
 			default:
 				System.out.println("entrée invalide");
-				confirmSearchBook();
+				confirmSearchBook(listeLivre);
 			}
 		} catch (InputMismatchException e) {
 			System.out.println("___________________________________________________________");
 			System.out.println("|Une erreur relative à l'entrée utilisateur s'est produite|");
 			System.out.println("|_________________________________________________________|");
-			confirmSearchBook();
+			confirmSearchBook(listeLivre);
 		}
 	}
 
 	// search menu for book searching by title
-	private static void searchBookByTitle() {
+	private static void searchBookByTitle(final List<Livre> listeLivre) {
 		try {
 			Scanner in = new Scanner(System.in);
 			System.out.println(
@@ -258,33 +256,33 @@ public class BookManager {
 				break;
 			default:
 				System.out.println("entrée invalide");
-				searchBookByTitle();
+				searchBookByTitle(listeLivre);
 			}
 			System.out.println("Renseignez le titre du livre :");
 			String searchTitle = in.nextLine();
 			searchTitle.toLowerCase();
-			for (Book book : bookOfSearchedAuthor) {
-				if (!rent && searchTitle.equalsIgnoreCase(book.getTitle())) {
-					System.out.println("Vous avez selectionné" + " " + book.getTitle());
-					Book selectedBook = book;
-					bookModifier(library, bookList, selectedBook);
-				} else if (rent && searchTitle.equalsIgnoreCase(book.getTitle())) {
-					System.out.println("Vous avez selectionné" + " " + book.getTitle());
-					Book selectedBook = book;
-					userRentChoice(library, bookList, selectedBook);
+			for (Livre livre : listeLivre) {
+				if (!rent && searchTitle.equalsIgnoreCase(livre.getTitre())) {
+					System.out.println("Vous avez selectionné" + " " + livre.getTitre());
+					Livre selectedBook = livre;
+					bookModifier(selectedBook);
+				} else if (rent && searchTitle.equalsIgnoreCase(livre.getTitre())) {
+					System.out.println("Vous avez selectionné" + " " + livre.getTitre());
+					Livre selectedBook = livre;
+//					userRentChoice(selectedBook);
 				} else {
 					System.out.println("Aucun titre corespondant, merci de choisir dans cette liste :");
-					for (Book books : bookOfSearchedAuthor) {
-						System.out.println(books.showBookInfos());
+					for (Livre livres : listeLivre) {
+						System.out.println(livres.showBookInfos());
 					}
-					searchBookByTitle(library, bookList, bookOfSearchedAuthor);
+					searchBookByTitle(listeLivre);
 				}
 			}
 		} catch (InputMismatchException e) {
 			System.out.println("___________________________________________________________");
 			System.out.println("|Une erreur relative à l'entrée utilisateur s'est produite|");
 			System.out.println("|_________________________________________________________|");
-			searchBookByTitle(library, bookList, bookOfSearchedAuthor);
+			searchBookByTitle(listeLivre);
 		}
 	}
 
@@ -313,8 +311,9 @@ public class BookManager {
 	}
 
 	// menu for book modifying
-	private static void bookModifier(final Library library, final List<Book> bookList, final Book book) {
+	private static void bookModifier(final Livre livre) {
 		try {
+			String oldTitle = livre.getTitre();
 			Scanner in = new Scanner(System.in);
 			System.out.println("______________________________");
 			System.out.println("|                            |");
@@ -333,63 +332,73 @@ public class BookManager {
 			case 1:
 				System.out.println("Inserez le nouveau titre :");
 				String newTitle = in.nextLine();
-				book.setTitle(newTitle);
+				livre.setTitre(newTitle);
+				bookModifier(livre);
 				break;
 			case 2:
 				System.out.println("Inserez le/a nouveau/elle auteur.ice :");
 				String newAuthor = in.nextLine();
-				book.setAuthor(newAuthor);
-				bookModifier(library, bookList, book);
+				livre.setAuteur(newAuthor);
+				bookModifier(livre);
 				break;
 			case 3:
 				System.out.println("Inserez le nouveau genre :");
 				String newGenre = in.nextLine();
-				book.setGenre(newGenre);
-				bookModifier(library, bookList, book);
+				livre.setGenre(newGenre);
+				bookModifier(livre);
 				break;
 			case 4:
 				System.out.println("Inserez le nouveau nombre de pages :");
 				int newPageNumber = in.nextInt();
-				book.setPageNumber(newPageNumber);
-				bookModifier(library, bookList, book);
+				livre.setPages(newPageNumber);
+				bookModifier(livre);
 				break;
 			case 5:
 				System.out.println("Inserez le nouveau nombre de copies :");
-				int newCopies = in.nextInt();
-				book.setCopies(newCopies);
-				bookModifier(library, bookList, book);
+				String newCopies = in.nextLine();
+				livre.setRef(newCopies);
+				bookModifier(livre);
 				break;
 			case 6:
-				Menu.mainMenu(library, bookList);
+				// TODO Insert change in DB
+				EntityManager em = JPAUtil.getEntityManagerFactory().createEntityManager();
+				em.getTransaction().begin();
+				javax.persistence.Query query = em.createNamedQuery("Livre.setChanges").setParameter("titre", livre.getTitre()).setParameter("auteur", livre.getAuteur())
+				.setParameter("genre", livre.getGenre()).setParameter("pages", livre.getPages()).setParameter("ref", livre.getRef())
+				.setParameter("oldTitle", oldTitle);
+				query.executeUpdate();
+				em.getTransaction().commit();
+				em.close();
+				Menu.mainMenu();
 				break;
 			default:
 				System.out.println("entrée invalide");
-				bookModifier(library, bookList, book);
+				bookModifier(livre);
 			}
-			bookModifier(library, bookList, book);
+			bookModifier(livre);
 		} catch (InputMismatchException e) {
 			System.out.println("___________________________________________________________");
 			System.out.println("|Une erreur relative à l'entrée utilisateur s'est produite|");
 			System.out.println("|_________________________________________________________|");
-			bookModifier(library, bookList, book);
+			bookModifier(livre);
 		}
 	}
 
 	// menu for book renting
 	private static void bookRenter() {
 		try {
-			if (book.getCopies() == -1) {
+			if (livre.getCopies() == -1) {
 				System.out.println(
 						"Une erreur sur le nombre d'exemplaire est présente, merci de vérifier le fichier contenant la liste des livre");
 				Menu.mainMenu(library, bookList);
-			} else if (book.getCopies() <= 0) {
+			} else if (livre.getCopies() <= 0) {
 				System.out.println("Désolé, le livre que vous souhaitez réserver est indisponible pour l'instant");
 				Menu.mainMenu(library, bookList);
 			} else {
 				Scanner in = new Scanner(System.in);
 				StringBuilder selected = new StringBuilder();
-				selected.append("Vous avez selectionné : ").append(book.getTitle()).append(" de : ")
-						.append(book.getAuthor());
+				selected.append("Vous avez selectionné : ").append(livre.getTitle()).append(" de : ")
+						.append(livre.getAuthor());
 				System.out.println(selected);
 				System.out.println("");
 				System.out.println(
@@ -398,7 +407,7 @@ public class BookManager {
 				in.nextLine(); // consuming leftover "\n"
 				if (rentDuration > 0 && rentDuration <= 30) {
 					StringBuilder confirmRent = new StringBuilder();
-					confirmRent.append("Confirmez vous vouloir réserver : ").append(book.getTitle()).append(" pour ")
+					confirmRent.append("Confirmez vous vouloir réserver : ").append(livre.getTitle()).append(" pour ")
 							.append(rentDuration).append(" jours ? (Oui : o / Non :n)");
 					System.out.println(confirmRent);
 					String userResponse = in.nextLine();
@@ -410,7 +419,7 @@ public class BookManager {
 						endRentDateMilli = endRentDateMilli + (rentDuration * 86400000);
 						LocalDateTime endRentDate = Instant.ofEpochMilli(endRentDateMilli)
 								.atZone(ZoneId.systemDefault()).toLocalDateTime();
-						book.setCopies(book.getCopies() - 1);
+						livre.setCopies(livre.getCopies() - 1);
 						StringBuilder result = new StringBuilder();
 						result.append("|Votre réservation est bien confirmée à partir du ").append(dtf.format(date))
 								.append(" au ").append(dtf.format(endRentDate)).append("|");
