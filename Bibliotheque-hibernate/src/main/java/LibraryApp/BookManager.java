@@ -1,17 +1,15 @@
 package LibraryApp;
 
 import java.awt.print.Book;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 
-import javax.management.Query;
 import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 
 /**
  * This class contains the methods used to add new books to the library
@@ -36,21 +34,21 @@ public class BookManager {
 			System.out.println(
 					"Bonjour, nous allons enregistrer votre livre, merci de renseigner les informations suivantes :");
 			System.out.println("Titre du livre : ");
-			String title = in.nextLine();
+			String title = in.nextLine().toLowerCase();
 			switch (title) {
 			case "m":
 				Menu.mainMenu();
 			default:
 				System.out.println("L'auteur.ice du livre :");
-				String author = in.nextLine();
+				String author = in.nextLine().toLowerCase();
 				System.out.println("Le genre du livre :");
-				String genre = in.nextLine();
+				String genre = in.nextLine().toLowerCase();
 				try {
 					System.out.println("Le nombre de page :");
 					pageNumber = in.nextInt();
 					in.nextLine();
 					System.out.println("La reference du livre :");
-					ref = in.nextLine();
+					ref = in.nextLine().toLowerCase();
 				} catch (InputMismatchException e) {
 					System.out.println("____________________________________________");
 					System.out.println("|L'information demandée doit être un nombre|");
@@ -84,8 +82,7 @@ public class BookManager {
 			System.out.println("Retour menu : 'm'");
 			System.out.println("");
 			System.out.println("Veuillez entrer le nom de l'auteur.ice du livre recherché :");
-			String searchedAuthor = in.nextLine();
-			searchedAuthor.toLowerCase();
+			String searchedAuthor = in.nextLine().toLowerCase();
 			switch (searchedAuthor) {
 			case "m":
 				Menu.mainMenu();
@@ -165,7 +162,6 @@ public class BookManager {
 				em.persist(livre);
 				em.getTransaction().commit();
 				em.close();
-				JPAUtil.shutdown();
 				System.out.println("Votre livre à bien été enregistré.");
 				Menu.mainMenu();
 				break;
@@ -259,7 +255,7 @@ public class BookManager {
 				searchBookByTitle(listeLivre);
 			}
 			System.out.println("Renseignez le titre du livre :");
-			String searchTitle = in.nextLine();
+			String searchTitle = in.nextLine().toLowerCase();
 			searchTitle.toLowerCase();
 			for (Livre livre : listeLivre) {
 				if (!rent && searchTitle.equalsIgnoreCase(livre.getTitre())) {
@@ -269,7 +265,7 @@ public class BookManager {
 				} else if (rent && searchTitle.equalsIgnoreCase(livre.getTitre())) {
 					System.out.println("Vous avez selectionné" + " " + livre.getTitre());
 					Livre selectedBook = livre;
-//					userRentChoice(selectedBook);
+					userRentChoice(selectedBook);
 				} else {
 					System.out.println("Aucun titre corespondant, merci de choisir dans cette liste :");
 					for (Livre livres : listeLivre) {
@@ -286,27 +282,27 @@ public class BookManager {
 		}
 	}
 
-	private static void userRentChoice(final Library library, final List<Book> bookList, final Book selectedBook) {
+	private static void userRentChoice(final Livre livre) {
 		try {
 			Scanner in = new Scanner(System.in);
 			System.out.println("Souhaitez-vous louer ou rendre un livre ? (Louer : l / Rendre : r)");
 			String userRentchoice = in.nextLine();
 			switch (userRentchoice) {
 			case "l":
-				bookRenter(library, bookList, selectedBook);
+				bookRenter(livre);
 				break;
 			case "r":
-				bookTurnIn(library, bookList, selectedBook);
+				bookTurnIn(livre);
 				break;
 			default:
-				userRentChoice(library, bookList, selectedBook);
+				userRentChoice(livre);
 				break;
 			}
 		} catch (InputMismatchException e) {
 			System.out.println("___________________________________________________________");
 			System.out.println("|Une erreur relative à l'entrée utilisateur s'est produite|");
 			System.out.println("|_________________________________________________________|");
-			userRentChoice(library, bookList, selectedBook);
+			userRentChoice(livre);
 		}
 	}
 
@@ -331,19 +327,19 @@ public class BookManager {
 			switch (userChoice) {
 			case 1:
 				System.out.println("Inserez le nouveau titre :");
-				String newTitle = in.nextLine();
+				String newTitle = in.nextLine().toLowerCase();
 				livre.setTitre(newTitle);
 				bookModifier(livre);
 				break;
 			case 2:
 				System.out.println("Inserez le/a nouveau/elle auteur.ice :");
-				String newAuthor = in.nextLine();
+				String newAuthor = in.nextLine().toLowerCase();
 				livre.setAuteur(newAuthor);
 				bookModifier(livre);
 				break;
 			case 3:
 				System.out.println("Inserez le nouveau genre :");
-				String newGenre = in.nextLine();
+				String newGenre = in.nextLine().toLowerCase();
 				livre.setGenre(newGenre);
 				bookModifier(livre);
 				break;
@@ -354,18 +350,19 @@ public class BookManager {
 				bookModifier(livre);
 				break;
 			case 5:
-				System.out.println("Inserez le nouveau nombre de copies :");
-				String newCopies = in.nextLine();
-				livre.setRef(newCopies);
+				System.out.println("Inserez la nouvelle référence :");
+				String newRef = in.nextLine().toLowerCase();
+				livre.setRef(newRef);
 				bookModifier(livre);
 				break;
 			case 6:
 				// TODO Insert change in DB
 				EntityManager em = JPAUtil.getEntityManagerFactory().createEntityManager();
 				em.getTransaction().begin();
-				javax.persistence.Query query = em.createNamedQuery("Livre.setChanges").setParameter("titre", livre.getTitre()).setParameter("auteur", livre.getAuteur())
-				.setParameter("genre", livre.getGenre()).setParameter("pages", livre.getPages()).setParameter("ref", livre.getRef())
-				.setParameter("oldTitle", oldTitle);
+				javax.persistence.Query query = em.createNamedQuery("Livre.setChanges")
+						.setParameter("titre", livre.getTitre()).setParameter("auteur", livre.getAuteur())
+						.setParameter("genre", livre.getGenre()).setParameter("pages", livre.getPages())
+						.setParameter("ref", livre.getRef()).setParameter("oldTitle", oldTitle);
 				query.executeUpdate();
 				em.getTransaction().commit();
 				em.close();
@@ -385,20 +382,13 @@ public class BookManager {
 	}
 
 	// menu for book renting
-	private static void bookRenter() {
+	private static void bookRenter(final Livre livre) {
 		try {
-			if (livre.getCopies() == -1) {
-				System.out.println(
-						"Une erreur sur le nombre d'exemplaire est présente, merci de vérifier le fichier contenant la liste des livre");
-				Menu.mainMenu(library, bookList);
-			} else if (livre.getCopies() <= 0) {
-				System.out.println("Désolé, le livre que vous souhaitez réserver est indisponible pour l'instant");
-				Menu.mainMenu(library, bookList);
-			} else {
+			if (livre.isDisponible()) {
 				Scanner in = new Scanner(System.in);
 				StringBuilder selected = new StringBuilder();
-				selected.append("Vous avez selectionné : ").append(livre.getTitle()).append(" de : ")
-						.append(livre.getAuthor());
+				selected.append("Vous avez selectionné : ").append(livre.getTitre()).append(" de : ")
+						.append(livre.getAuteur());
 				System.out.println(selected);
 				System.out.println("");
 				System.out.println(
@@ -407,27 +397,34 @@ public class BookManager {
 				in.nextLine(); // consuming leftover "\n"
 				if (rentDuration > 0 && rentDuration <= 30) {
 					StringBuilder confirmRent = new StringBuilder();
-					confirmRent.append("Confirmez vous vouloir réserver : ").append(livre.getTitle()).append(" pour ")
+					confirmRent.append("Confirmez vous vouloir réserver : ").append(livre.getTitre()).append(" pour ")
 							.append(rentDuration).append(" jours ? (Oui : o / Non :n)");
 					System.out.println(confirmRent);
 					String userResponse = in.nextLine();
 					switch (userResponse) {
 					case "o":
-						DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-						LocalDateTime date = LocalDateTime.now();
-						long endRentDateMilli = System.currentTimeMillis();
-						endRentDateMilli = endRentDateMilli + (rentDuration * 86400000);
-						LocalDateTime endRentDate = Instant.ofEpochMilli(endRentDateMilli)
-								.atZone(ZoneId.systemDefault()).toLocalDateTime();
-						livre.setCopies(livre.getCopies() - 1);
-						StringBuilder result = new StringBuilder();
-						result.append("|Votre réservation est bien confirmée à partir du ").append(dtf.format(date))
-								.append(" au ").append(dtf.format(endRentDate)).append("|");
+						DateFormat dtf = new SimpleDateFormat("dd/MM/yyyy");
+						Calendar  cal = Calendar.getInstance();
+						Date dateDebut = cal.getTime();
+						cal.add(Calendar.DATE, rentDuration);
+						Date dateFin = cal.getTime();						
+						StringBuilder result = new StringBuilder();						
+						result.append("|Votre réservation est bien confirmée à partir du ").append(dtf.format(dateDebut))
+								.append(" au ").append(dtf.format(dateFin)).append("|");
 						System.out
 								.println("___________________________________________________________________________");
 						System.out.println(result);
 						System.out
 								.println("|_________________________________________________________________________|");
+						livre.setDisponible(false);
+						//TODO Rent book
+						Reserv res = new Reserv(dateDebut ,dateFin, livre);
+						EntityManager em = JPAUtil.getEntityManagerFactory().createEntityManager();
+						em.getTransaction().begin();
+						em.persist(res);
+						em.getTransaction().commit();
+						em.close();
+						
 						Menu.mainMenu();
 						break;
 					case "n":
@@ -435,26 +432,28 @@ public class BookManager {
 						break;
 					default:
 						System.out.println("entrée invalide");
-						bookRenter();
+						bookRenter(livre);
 					}
 				} else {
-					bookRenter();
+					System.out.println("Désolé, le livre que vous souhaitez réserver est indisponible pour l'instant");
+					Menu.mainMenu();
+					bookRenter(livre);
 				}
 			}
 		} catch (InputMismatchException e) {
 			System.out.println("___________________________________________________________");
 			System.out.println("|Une erreur relative à l'entrée utilisateur s'est produite|");
 			System.out.println("|_________________________________________________________|");
-			bookRenter();
+			bookRenter(livre);
 		}
 	}
 
 	// Menu for turning back books
-	private static void bookTurnIn(final Library library, final List<Book> bookList, final Book book) {
-		book.setCopies(book.getCopies() + 1);
+	private static void bookTurnIn(final Livre livre) {
+//		livre.setCopies(livre.getCopies() + 1);
 		System.out.println("_____________________________");
 		System.out.println("|Le livre à bien été rendu !|");
 		System.out.println("|___________________________|");
-		Menu.mainMenu(library, bookList);
+		Menu.mainMenu();
 	}
 }
