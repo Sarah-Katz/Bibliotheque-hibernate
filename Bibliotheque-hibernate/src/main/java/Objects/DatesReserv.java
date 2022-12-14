@@ -1,4 +1,4 @@
-package LibraryApp;
+package Objects;
 
 import java.util.Date;
 
@@ -19,7 +19,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "reserv")
-public class Reserv {
+public class DatesReserv {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "idres")
@@ -32,7 +32,7 @@ public class Reserv {
 	@JoinTable(name = "reserver", joinColumns = @JoinColumn(name = "idres"), inverseJoinColumns = @JoinColumn(name = "idlivre"))
 	private Livre livre;
 
-	public Reserv() {
+	public DatesReserv() {
 	}
 
 	/**
@@ -40,7 +40,7 @@ public class Reserv {
 	 * @param fin
 	 * @param livre
 	 */
-	public Reserv(final Date debut, final Date fin, final Livre livre) {
+	public DatesReserv(final Date debut, final Date fin, final Livre livre) {
 		this.debut = debut;
 		this.fin = fin;
 		this.livre = livre;

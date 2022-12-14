@@ -1,10 +1,9 @@
 package LibraryApp;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.InputMismatchException;
-import java.util.List;
 import java.util.Scanner;
+
+import Utils.JPA;
 
 /**
  * @author Sarah Katz
@@ -13,8 +12,8 @@ import java.util.Scanner;
 public class Menu {
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 */
 	public static void startProgram() {
 		mainMenu();
@@ -53,13 +52,14 @@ public class Menu {
 				BookManager.searchBook();
 				break;
 			case 4:
-				
+
 				break;
 			case 5:
-				
+
 				break;
 			case 6:
-				JPAUtil.shutdown();
+				JPA.shutdownEntityManager();
+				JPA.shutdownFactory();
 				System.exit(0);
 				break;
 			default:

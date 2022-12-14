@@ -1,6 +1,5 @@
 package LibraryApp;
 
-import java.awt.print.Book;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -10,6 +9,12 @@ import java.util.List;
 import java.util.Scanner;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
+
+import Objects.DatesReserv;
+import Objects.Livre;
+import Objects.Reservation;
+import Utils.JPA;
 
 /**
  * This class contains the methods used to add new books to the library
@@ -87,9 +92,9 @@ public class BookManager {
 			case "m":
 				Menu.mainMenu();
 			default:
-				EntityManager em = JPAUtil.getEntityManagerFactory().createEntityManager();
+				EntityManager em = JPA.getEntityManager();
 				@SuppressWarnings("unchecked")
-				List<Livre> listeLivre = (List<Livre>) em.createNamedQuery("Livre.searchAuthor")
+				List<Livre> listeLivre = em.createNamedQuery("Livre.searchAuthor")
 						.setParameter("inputTitle", "%" + searchedAuthor + "%").getResultList();
 				StringBuilder result = new StringBuilder();
 				if (listeLivre.size() > 0) {
@@ -104,11 +109,13 @@ public class BookManager {
 							result.append("non");
 						}
 						System.out.println(result);
-						em.close();
 						confirmSearchBook(listeLivre);
 					}
 				} else {
-					// TODO : no match
+					System.out.println("_________________________________________________________________________");
+					System.out.println("|Aucun livre par cet.te auteur.ice n'est disponible dans la bibliothèque|");
+					System.out.println("|_______________________________________________________________________|");
+					searchBook();
 				}
 			}
 		} catch (InputMismatchException e) {
@@ -125,9 +132,9 @@ public class BookManager {
 	 * @param bookList List of books registered in the program
 	 */
 	protected static void showBookList() {
-		EntityManager em = JPAUtil.getEntityManagerFactory().createEntityManager();
+		EntityManager em = JPA.getEntityManager();
 		@SuppressWarnings("unchecked")
-		List<Livre> livre = (List<Livre>) em.createNamedQuery("Livre.showAll").getResultList();
+		List<Livre> livre = em.createNamedQuery("Livre.showAll").getResultList();
 		StringBuilder result = new StringBuilder();
 		for (Livre l : livre) {
 			result.setLength(0);
@@ -141,7 +148,6 @@ public class BookManager {
 			}
 			System.out.println(result);
 		}
-		em.close();
 		Menu.mainMenu();
 	}
 
@@ -157,11 +163,10 @@ public class BookManager {
 			switch (confirm) {
 			case "o":
 				Livre livre = new Livre(title, author, genre, pageNumber, ref);
-				EntityManager em = JPAUtil.getEntityManagerFactory().createEntityManager();
+				EntityManager em = JPA.getEntityManager();
 				em.getTransaction().begin();
 				em.persist(livre);
 				em.getTransaction().commit();
-				em.close();
 				System.out.println("Votre livre à bien été enregistré.");
 				Menu.mainMenu();
 				break;
@@ -356,16 +361,14 @@ public class BookManager {
 				bookModifier(livre);
 				break;
 			case 6:
-				// TODO Insert change in DB
-				EntityManager em = JPAUtil.getEntityManagerFactory().createEntityManager();
+				EntityManager em = JPA.getEntityManager();
 				em.getTransaction().begin();
-				javax.persistence.Query query = em.createNamedQuery("Livre.setChanges")
+				Query query = em.createNamedQuery("Livre.setChanges")
 						.setParameter("titre", livre.getTitre()).setParameter("auteur", livre.getAuteur())
 						.setParameter("genre", livre.getGenre()).setParameter("pages", livre.getPages())
 						.setParameter("ref", livre.getRef()).setParameter("oldTitle", oldTitle);
 				query.executeUpdate();
 				em.getTransaction().commit();
-				em.close();
 				Menu.mainMenu();
 				break;
 			default:
@@ -404,27 +407,24 @@ public class BookManager {
 					switch (userResponse) {
 					case "o":
 						DateFormat dtf = new SimpleDateFormat("dd/MM/yyyy");
-						Calendar  cal = Calendar.getInstance();
+						Calendar cal = Calendar.getInstance();
 						Date dateDebut = cal.getTime();
 						cal.add(Calendar.DATE, rentDuration);
-						Date dateFin = cal.getTime();						
-						StringBuilder result = new StringBuilder();						
-						result.append("|Votre réservation est bien confirmée à partir du ").append(dtf.format(dateDebut))
-								.append(" au ").append(dtf.format(dateFin)).append("|");
+						Date dateFin = cal.getTime();
+						StringBuilder result = new StringBuilder();
+						result.append("|Votre réservation est bien confirmée à partir du ")
+								.append(dtf.format(dateDebut)).append(" au ").append(dtf.format(dateFin)).append("|");
 						System.out
 								.println("___________________________________________________________________________");
 						System.out.println(result);
 						System.out
 								.println("|_________________________________________________________________________|");
 						livre.setDisponible(false);
-						//TODO Rent book
-						Reserv res = new Reserv(dateDebut ,dateFin, livre);
-						EntityManager em = JPAUtil.getEntityManagerFactory().createEntityManager();
+						DatesReserv res = new DatesReserv(dateDebut, dateFin, livre);
+						EntityManager em = JPA.getEntityManager();
 						em.getTransaction().begin();
 						em.persist(res);
 						em.getTransaction().commit();
-						em.close();
-						
 						Menu.mainMenu();
 						break;
 					case "n":
@@ -435,10 +435,12 @@ public class BookManager {
 						bookRenter(livre);
 					}
 				} else {
-					System.out.println("Désolé, le livre que vous souhaitez réserver est indisponible pour l'instant");
-					Menu.mainMenu();
+					System.out.println("Nombre de jours invalide");
 					bookRenter(livre);
 				}
+			} else {
+				System.out.println("Désolé, le livre que vous souhaitez réserver est indisponible pour l'instant");
+				Menu.mainMenu();
 			}
 		} catch (InputMismatchException e) {
 			System.out.println("___________________________________________________________");
@@ -450,10 +452,24 @@ public class BookManager {
 
 	// Menu for turning back books
 	private static void bookTurnIn(final Livre livre) {
-//		livre.setCopies(livre.getCopies() + 1);
-		System.out.println("_____________________________");
-		System.out.println("|Le livre à bien été rendu !|");
-		System.out.println("|___________________________|");
+		int idlivre = livre.getIdlivre();
+		EntityManager em = JPA.getEntityManager();
+		Reservation reservation = (Reservation) (em.createQuery("SELECT r FROM Reserver r WHERE idlivre ='" + idlivre + "'")
+				.getSingleResult());
+		if (idlivre == reservation.getIdlivre()) {
+			JPA.getEntityManager();
+			em.getTransaction().begin();
+			Query query = em.createQuery("DELETE FROM Reserver r WHERE r.idlivre = '" + idlivre + "'");
+			query.executeUpdate();
+			em.getTransaction().commit();
+			System.out.println("_____________________________");
+			System.out.println("|Le livre à bien été rendu !|");
+			System.out.println("|___________________________|");
+		} else {
+			System.out.println("___________________________");
+			System.out.println("|Ce livre n'est pas loué !|");
+			System.out.println("|_________________________|");
+		}
 		Menu.mainMenu();
 	}
 }
