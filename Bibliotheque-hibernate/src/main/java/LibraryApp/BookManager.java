@@ -162,12 +162,16 @@ public class BookManager {
 			confirm.toLowerCase();
 			switch (confirm) {
 			case "o":
-				Livre livre = new Livre(title, author, genre, pageNumber, ref);
 				EntityManager em = JPA.getEntityManager();
 				em.getTransaction().begin();
-				em.persist(livre);
+				System.out.println("Combien d'exemplaires souhaitez vous enregistrer ?");
+				int bookCopies = in.nextInt();
+				for (int i = 0; i < bookCopies; i++) {
+					Livre livre = new Livre(title, author, genre, pageNumber, ref);
+					em.persist(livre);
+				}
 				em.getTransaction().commit();
-				System.out.println("Votre livre à bien été enregistré.");
+				System.out.println("Votre enregistrement est un succès.");
 				Menu.mainMenu();
 				break;
 			case "n":
@@ -365,10 +369,10 @@ public class BookManager {
 			case 6:
 				EntityManager em = JPA.getEntityManager();
 				em.getTransaction().begin();
-				Query query = em.createNamedQuery("Livre.setChanges")
-						.setParameter("titre", livre.getTitre()).setParameter("auteur", livre.getAuteur())
-						.setParameter("genre", livre.getGenre()).setParameter("pages", livre.getPages())
-						.setParameter("ref", livre.getRef()).setParameter("oldTitle", oldTitle);
+				Query query = em.createNamedQuery("Livre.setChanges").setParameter("titre", livre.getTitre())
+						.setParameter("auteur", livre.getAuteur()).setParameter("genre", livre.getGenre())
+						.setParameter("pages", livre.getPages()).setParameter("ref", livre.getRef())
+						.setParameter("oldTitle", oldTitle);
 				query.executeUpdate();
 				em.getTransaction().commit();
 				Menu.mainMenu();
@@ -456,8 +460,8 @@ public class BookManager {
 	private static void bookTurnIn(final Livre livre) {
 		int idlivre = livre.getIdlivre();
 		EntityManager em = JPA.getEntityManager();
-		Reservation reservation = (Reservation) (em.createQuery("SELECT r FROM Reserver r WHERE idlivre ='" + idlivre + "'")
-				.getSingleResult());
+		Reservation reservation = (Reservation) (em
+				.createQuery("SELECT r FROM Reserver r WHERE idlivre ='" + idlivre + "'").getSingleResult());
 		if (idlivre == reservation.getIdlivre()) {
 			JPA.getEntityManager();
 			em.getTransaction().begin();
