@@ -64,7 +64,7 @@ public class BookManager {
 				StringBuilder result = new StringBuilder();
 				result.append("Titre : ").append(title).append("\n").append("Auteur.ice : ").append(author).append("\n")
 						.append("Genre : ").append(genre).append("\n").append("Nombre de pages : ").append(pageNumber)
-						.append("\n").append("Nombre de copies : ").append(ref);
+						.append("\n").append("Référence : ").append(ref);
 				confirmNewBook(title, author, genre, pageNumber, ref, result);
 			}
 
@@ -316,6 +316,8 @@ public class BookManager {
 		try {
 			String oldTitle = livre.getTitre();
 			Scanner in = new Scanner(System.in);
+			System.out.println("Voici les informations actuelles du livre selectionné : ");
+			System.out.println(livre.showBookInfos());
 			System.out.println("______________________________");
 			System.out.println("|                            |");
 			System.out.println("|Vous souhaitez modifier :   |");
@@ -323,7 +325,7 @@ public class BookManager {
 			System.out.println("|2 - l'auteur.ice            |");
 			System.out.println("|3 - le genre                |");
 			System.out.println("|4 - le nombre de pages      |");
-			System.out.println("|5 - le nombre de copies     |");
+			System.out.println("|5 - la référence            |");
 			System.out.println("|6 - Retour au menu principal|");
 			System.out.println("|____________________________|");
 			int userChoice = in.nextInt();

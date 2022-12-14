@@ -9,6 +9,9 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 /**
+ * This class represents a book and it's informations : Title, Author, Genre,
+ * Number of pages and Reference number.
+ * 
  * @author Sarah Katz
  *
  */
@@ -39,12 +42,15 @@ public class Livre {
 	}
 
 	/**
-	 * @param titre
-	 * @param auteur
-	 * @param genre
-	 * @param pages
-	 * @param disponible
-	 * @param ref
+	 * * This constructor creates an instance of Book using parameters
+	 *
+	 * @param bookList   the list containing books to be used in Library class
+	 * @param titre      Book title
+	 * @param auteur     Book author
+	 * @param genre      Book genre
+	 * @param pages      Number of pages in the book
+	 * @param disponible Availability of the book
+	 * @param ref        Reference number of the book
 	 */
 	public Livre(String titre, String auteur, String genre, int pages, String ref) {
 		this.titre = titre;
@@ -55,6 +61,11 @@ public class Livre {
 		this.ref = ref;
 	}
 
+	/**
+	 * Gets and returns all infos about a book
+	 * 
+	 * @return the book's title, author, genre, page number and reference number
+	 */
 	public StringBuilder showBookInfos() {
 		StringBuilder result = new StringBuilder();
 		result.append("Titre : ").append(this.getTitre()).append("\n");
