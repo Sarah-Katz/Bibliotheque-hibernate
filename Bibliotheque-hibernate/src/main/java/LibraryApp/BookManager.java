@@ -1,5 +1,8 @@
 package LibraryApp;
 
+//TODO Exception handling
+//TODO Display only one of identical books in showBookList()
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -25,10 +28,7 @@ import Utils.JPA;
 public class BookManager {
 
 	/**
-	 * This method lets the user instance a new Book in bookList using parameters
-	 * he'll input
-	 *
-	 * @param bookList List of books registered in the program
+	 * This method lets the user insert one or more book in the database
 	 */
 	protected static void newBook() {
 		int pageNumber = 0;
@@ -77,9 +77,7 @@ public class BookManager {
 	}
 
 	/**
-	 * This method let's the user search a list of books by author name *
-	 *
-	 * @param bookList List of books registered in the program
+	 * This method let's the user search the books in the database by author name
 	 */
 	protected static void searchBook() {
 		try {
@@ -127,9 +125,7 @@ public class BookManager {
 	}
 
 	/**
-	 * This method will display infos about all books in the bookList param
-	 *
-	 * @param bookList List of books registered in the program
+	 * This method will display infos about all books in database
 	 */
 	protected static void showBookList() {
 		EntityManager em = JPA.getEntityManager();
