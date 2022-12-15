@@ -1,10 +1,10 @@
 package LibraryApp;
 
 //TODO Exception handling
-//TODO Display only one of identical books in showBookList()
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.InputMismatchException;
@@ -131,8 +131,9 @@ public class BookManager {
 		EntityManager em = JPA.getEntityManager();
 		@SuppressWarnings("unchecked")
 		List<Livre> livre = em.createNamedQuery("Livre.showAll").getResultList();
+		List<Livre >filteredList = filterDuplicate(livre);
 		StringBuilder result = new StringBuilder();
-		for (Livre l : livre) {
+		for (Livre l : filteredList) {			
 			result.setLength(0);
 			result.append("Titre : ").append(l.getTitre()).append(", Auteur.ice : ").append(l.getAuteur())
 					.append(", Genre : ").append(l.getGenre()).append(", Nombre de pages : ").append(l.getPages())
@@ -145,6 +146,18 @@ public class BookManager {
 			System.out.println(result);
 		}
 		Menu.mainMenu();
+	}
+	
+	private static List<Livre> filterDuplicate(List<Livre> livre) {
+		List<Livre> filteredList = new ArrayList<Livre>();
+		String lastTitre = null;
+		for (Livre l : livre) {
+			if (!l.getTitre().equals(lastTitre)) {
+				filteredList.add(l);
+				lastTitre = l.getTitre();
+			}
+		}
+		return filteredList;
 	}
 
 	// confirmation menu for newBook()

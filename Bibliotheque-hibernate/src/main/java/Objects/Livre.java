@@ -16,7 +16,7 @@ import javax.persistence.Table;
  *
  */
 @Entity
-@NamedQuery(name = "Livre.showAll", query = "SELECT l FROM Livre l")
+@NamedQuery(name = "Livre.showAll", query = "SELECT l FROM Livre l ORDER BY l.ref")
 @NamedQuery(name = "Livre.searchAuthor", query = "SELECT l FROM Livre l WHERE l.auteur LIKE :inputTitle")
 @NamedQuery(name = "Livre.setChanges", query = "UPDATE Livre l SET titre = :titre, auteur = :auteur, genre = :genre, pages = :pages, ref = :ref WHERE titre = :oldTitle")
 @Table(name = "livre")
