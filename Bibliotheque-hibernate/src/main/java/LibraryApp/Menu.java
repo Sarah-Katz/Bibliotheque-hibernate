@@ -6,25 +6,29 @@ import java.util.Scanner;
 import Utils.JPA;
 
 /**
+ * The Menu class provides a main menu for the program. It allows the user to
+ * select different actions such as registering a new book, displaying the list
+ * of books, reserving or returning a book, or closing the program. The menu is
+ * displayed to the user in console and the user can make a selection by
+ * entering the corresponding number.
+ * 
  * @author Sarah Katz
  *
  */
 public class Menu {
 
 	/**
+	 * Displays the main menu and prompts the user to select an action. The user can
+	 * choose from the following actions:
+	 * <ul>
+	 * <li>1 - Register a new book</li>
+	 * <li>2 - Display the list of books</li>
+	 * <li>3 - Reserve, return, or modify a book</li>
+	 * <li>4 - Close the program</li>
+	 * </ul>
+	 * 
+	 * @throws InputMismatchException if the user enters an invalid input
 	 *
-	 *
-	 */
-	public static void startProgram() {
-		mainMenu();
-	}
-
-	/**
-	 * This method calls the main menu to be displayed and let's user decide what
-	 * they want to do using numbers for action selection through a switch
-	 *
-	 * @param library
-	 * @param bookList
 	 */
 	protected static void mainMenu() {
 		try {
@@ -35,10 +39,8 @@ public class Menu {
 			System.out.println("|1 - Enregistrer un nouveau livre                       |");
 			System.out.println("|2 - Afficher la liste des livres                       |");
 			System.out.println("|3 - Réserver, rendre ou modifier un livre              |");
-			System.out.println("|4 -                                                    |");
-			System.out.println("|5 -                                                    |");
 			System.out.println("|-------------------------------------------------------|");
-			System.out.println("|6 - Fermer le programme                                |");
+			System.out.println("|4 - Fermer le programme                                |");
 			System.out.println("|_______________________________________________________|");
 			int userChoice = in.nextInt();
 			switch (userChoice) {
@@ -52,12 +54,7 @@ public class Menu {
 				BookManager.searchBook();
 				break;
 			case 4:
-
-				break;
-			case 5:
-
-				break;
-			case 6:
+				in.close();
 				JPA.shutdownEntityManager();
 				JPA.shutdownFactory();
 				System.exit(0);
