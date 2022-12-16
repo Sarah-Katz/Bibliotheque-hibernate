@@ -13,6 +13,7 @@ import java.util.Scanner;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.persistence.QueryTimeoutException;
 
 import Objects.DatesReserv;
 import Objects.Livre;
@@ -20,7 +21,10 @@ import Objects.Reservation;
 import Utils.JPA;
 
 /**
- * This class contains the methods used to add new books to the library
+ * The BookManager class contains methods related to managing books in the
+ * library. It allows users to create new books, search for books by author, and
+ * view the list of all books in the library. It also includes methods for
+ * reserving, returning, and modifying book information.
  *
  * @author Sarah Katz
  *
@@ -28,7 +32,10 @@ import Utils.JPA;
 public class BookManager {
 
 	/**
-	 * This method lets the user insert one or more book in the database
+	 * Allows the user to enter information about a new book and confirms the
+	 * entered information before adding the book to the database.
+	 *
+	 * @throws InputMismatchException if an error occurs while reading user input
 	 */
 	protected static void newBook() {
 		int pageNumber = 0;
@@ -77,7 +84,14 @@ public class BookManager {
 	}
 
 	/**
-	 * This method let's the user search the books in the database by author name
+	 * The searchBook method allows a user to search for a book in the library by
+	 * its author's name. If any books are found, they will be displayed to the user
+	 * along with their title, genre, number of pages, and availability. If no books
+	 * are found, the user will be notified. The user can also return to the main
+	 * menu by entering 'm'.
+	 * 
+	 * @throws InputMismatchException if there is an error with the user input
+	 * @throws QueryTimeoutException  if the database takes too long to respond
 	 */
 	protected static void searchBook() {
 		try {
@@ -121,33 +135,50 @@ public class BookManager {
 			System.out.println("|Une erreur relative à l'entrée utilisateur s'est produite|");
 			System.out.println("|_________________________________________________________|");
 			searchBook();
+		} catch (QueryTimeoutException e1) {
+			System.out.println("_________________________________________________________");
+			System.out.println("|Le temps de réponse de la base de données est trop long|");
+			System.out.println("|_______________________________________________________|");
+			Menu.mainMenu();
 		}
 	}
 
 	/**
-	 * This method will display infos about all books in database
+	 * The showBookList method retrieves a list of all books in the database and
+	 * displays their information to the user. This includes the title, author,
+	 * genre, number of pages, and availability of each book. The method also
+	 * filters out any duplicate entries in the list of books.
+	 * 
+	 * @throws QueryTimeoutException if the database takes too long to respond
 	 */
 	protected static void showBookList() {
-		EntityManager em = JPA.getEntityManager();
-		@SuppressWarnings("unchecked")
-		List<Livre> livre = em.createNamedQuery("Livre.showAll").getResultList();
-		List<Livre >filteredList = filterDuplicate(livre);
-		StringBuilder result = new StringBuilder();
-		for (Livre l : filteredList) {			
-			result.setLength(0);
-			result.append("Titre : ").append(l.getTitre()).append(", Auteur.ice : ").append(l.getAuteur())
-					.append(", Genre : ").append(l.getGenre()).append(", Nombre de pages : ").append(l.getPages())
-					.append(", Disponible : ");
-			if (l.isDisponible()) {
-				result.append("oui.");
-			} else {
-				result.append("non");
+		try {
+			EntityManager em = JPA.getEntityManager();
+			@SuppressWarnings("unchecked")
+			List<Livre> livre = em.createNamedQuery("Livre.showAll").getResultList();
+			List<Livre> filteredList = filterDuplicate(livre);
+			StringBuilder result = new StringBuilder();
+			for (Livre l : filteredList) {
+				result.setLength(0);
+				result.append("Titre : ").append(l.getTitre()).append(", Auteur.ice : ").append(l.getAuteur())
+						.append(", Genre : ").append(l.getGenre()).append(", Nombre de pages : ").append(l.getPages())
+						.append(", Disponible : ");
+				if (l.isDisponible()) {
+					result.append("oui.");
+				} else {
+					result.append("non");
+				}
+				System.out.println(result);
 			}
-			System.out.println(result);
+			Menu.mainMenu();
+		} catch (QueryTimeoutException e) {
+			System.out.println("_________________________________________________________");
+			System.out.println("|Le temps de réponse de la base de données est trop long|");
+			System.out.println("|_______________________________________________________|");
+			Menu.mainMenu();
 		}
-		Menu.mainMenu();
 	}
-	
+
 	private static List<Livre> filterDuplicate(List<Livre> livre) {
 		List<Livre> filteredList = new ArrayList<Livre>();
 		String lastTitre = null;
@@ -194,6 +225,11 @@ public class BookManager {
 			System.out.println("___________________________________________________________");
 			System.out.println("|Une erreur relative à l'entrée utilisateur s'est produite|");
 			System.out.println("|_________________________________________________________|");
+			Menu.mainMenu();
+		} catch (QueryTimeoutException e) {
+			System.out.println("_________________________________________________________");
+			System.out.println("|Le temps de réponse de la base de données est trop long|");
+			System.out.println("|_______________________________________________________|");
 			Menu.mainMenu();
 		}
 	}
@@ -467,24 +503,31 @@ public class BookManager {
 
 	// Menu for turning back books
 	private static void bookTurnIn(final Livre livre) {
-		int idlivre = livre.getIdlivre();
-		EntityManager em = JPA.getEntityManager();
-		Reservation reservation = (Reservation) (em
-				.createQuery("SELECT r FROM Reserver r WHERE idlivre ='" + idlivre + "'").getSingleResult());
-		if (idlivre == reservation.getIdlivre()) {
-			JPA.getEntityManager();
-			em.getTransaction().begin();
-			Query query = em.createQuery("DELETE FROM Reserver r WHERE r.idlivre = '" + idlivre + "'");
-			query.executeUpdate();
-			em.getTransaction().commit();
-			System.out.println("_____________________________");
-			System.out.println("|Le livre à bien été rendu !|");
-			System.out.println("|___________________________|");
-		} else {
-			System.out.println("___________________________");
-			System.out.println("|Ce livre n'est pas loué !|");
-			System.out.println("|_________________________|");
+		try {
+			int idlivre = livre.getIdlivre();
+			EntityManager em = JPA.getEntityManager();
+			Reservation reservation = (Reservation) (em
+					.createQuery("SELECT r FROM Reserver r WHERE idlivre ='" + idlivre + "'").getSingleResult());
+			if (idlivre == reservation.getIdlivre()) {
+				JPA.getEntityManager();
+				em.getTransaction().begin();
+				Query query = em.createQuery("DELETE FROM Reserver r WHERE r.idlivre = '" + idlivre + "'");
+				query.executeUpdate();
+				em.getTransaction().commit();
+				System.out.println("_____________________________");
+				System.out.println("|Le livre à bien été rendu !|");
+				System.out.println("|___________________________|");
+			} else {
+				System.out.println("___________________________");
+				System.out.println("|Ce livre n'est pas loué !|");
+				System.out.println("|_________________________|");
+			}
+			Menu.mainMenu();
+		} catch (QueryTimeoutException e) {
+			System.out.println("_________________________________________________________");
+			System.out.println("|Le temps de réponse de la base de données est trop long|");
+			System.out.println("|_______________________________________________________|");
+			Menu.mainMenu();
 		}
-		Menu.mainMenu();
 	}
 }
